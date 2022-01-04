@@ -1,39 +1,61 @@
-const fs = require('fs/promises');
-const path = require('path');
-const crypto = require('crypto');
+import fs from 'fs/promises';
+import path from 'path';
+import { randomUUID } from 'crypto';
+import contacts from './contacts.json';
+import { fileURLToPath } from 'url';
 
-const readContent = async () => {
-  const content = await fs.readFile(
-    path.join(__dirname, 'db', 'contacts.json'),
-    'utf8'
-  );
-  const result = JSON.parse(content);
-  return result;
-};
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const listContacts = async () => {
-  return await readContent();
+  return contacts;
 };
 
 const getContactById = async (contactId) => {
-  const contacts = await readContent();
   const [contact] = contacts.filter((contact) => contact.id === contactId);
   return contact;
 };
 
-function removeContact(contactId) {
-  // ...твой код
-}
+const removeContact = async (contactId) => {
+  const index = contacts.findIndex((contact) => contact.id === contactId);
+  if (index !== -1) {
+    const [result] = contacts.splice(index, 1);
+    await fs.writeFile(
+      path.join(__dirname, 'contacts.json'),
+      JSON.stringify(contacts, null, 2)
+    );
+    return result;
+  }
+  return null;
+};
 
-const addContact = async (name, email, phone) => {
-  const contacts = await readContent();
-  const newContact = { name, email, phone, id: crypto.randomUUID() };
+const addContact = async ({ name, email, phone }) => {
+  const newContact = { name, email, phone, id: randomUUID() };
   contacts.push(newContact);
   await fs.writeFile(
-    path.join(__dirname, 'db', 'contacts.json'),
+    path.join(__dirname, 'contacts.json'),
     JSON.stringify(contacts, null, 2)
   );
   return newContact;
 };
 
-module.exports = { listContacts, getContactById, removeContact, addContact };
+const updateContact = async (contactId, body) => {
+  const index = contacts.findIndex((contact) => contact.id === contactId);
+  if (index !== -1) {
+    const updatedContact = { id: contactId, ...contacts[index], ...body };
+    contacts[index] = updatedContact;
+    await fs.writeFile(
+      path.join(__dirname, 'contacts.json'),
+      JSON.stringify(contacts, null, 2)
+    );
+    return updatedContact;
+  }
+  return null;
+};
+
+export default {
+  listContacts,
+  getContactById,
+  removeContact,
+  addContact,
+  updateContact,
+};

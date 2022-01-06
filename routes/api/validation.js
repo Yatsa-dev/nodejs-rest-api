@@ -27,7 +27,11 @@ export const validateUpdate = async (req, res, next) => {
   try {
     const value = await updateSchema.validateAsync(req.body);
   } catch (error) {
-    return res.status(400).json({ message: `missing fields` });
+    const [{ type }] = error.details;
+    if (type === 'object.unknown') {
+      return res.status(400).json({ message: error.message });
+    }
+    return res.status(400).json({ message: error.message });
   }
   next();
 };

@@ -1,3 +1,4 @@
+/* eslint-disable prefer-regex-literals */
 import Joi from 'joi';
 import mongoose from 'mongoose';
 import { MIN_AGE, MAX_AGE } from '../../../lib/constants';
@@ -21,6 +22,23 @@ const updateSchema = Joi.object({
 
 const updateFavoriteSchema = Joi.object({
   favorite: Joi.bool().optional().required(),
+});
+const querySchema = Joi.object({
+  limit: Joi.number().min(1).max(100).optional(),
+  skip: Joi.number().min(0).optional(),
+  sortBy: Joi.string()
+    .valid('name', 'age', 'email', 'phone', 'favorite')
+    .optional(),
+  sortByDesc: Joi.string()
+    .valid('name', 'age', 'email', 'phone', 'favorite')
+    .optional(),
+  filter: Joi.string()
+    .pattern(
+      new RegExp(
+        '(name|age|email|phone|favorite)\\|?(name|age|email|phone|favorite)+'
+      )
+    )
+    .optional(),
 });
 
 export const validateCreate = async (req, res, next) => {
@@ -62,6 +80,17 @@ export const validateUpdateFavorite = async (req, res, next) => {
 export const validateId = async (req, res, next) => {
   if (!Types.ObjectId.isValid(req.params.id)) {
     return res.status(400).json({ message: 'Invalid ObjectId' });
+  }
+  next();
+};
+
+export const validateQuery = async (req, res, next) => {
+  try {
+    await querySchema.validateAsync(req.query);
+  } catch (error) {
+    return res
+      .status(400)
+      .json({ message: `Field ${error.message.replace(/"/g, '')}` });
   }
   next();
 };

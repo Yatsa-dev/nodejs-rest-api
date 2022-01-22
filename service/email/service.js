@@ -8,13 +8,13 @@ class EmailService {
         this.link = 'https://7578-78-26-151-175.ngrok.io';
         break;
       case 'test':
-        this.link = 'http://localhost:5000/';
+        this.link = 'http://localhost:5000';
         break;
       case 'production':
-        this.link = 'http://heroku';
+        this.link = 'https://rest-api-yatsyshyn-nodejs.herokuapp.com';
         break;
       default:
-        this.link = 'http://localhost:3000/';
+        this.link = 'http://localhost:3000';
     }
   }
   createEmailTemplate(username, verifyToken) {
